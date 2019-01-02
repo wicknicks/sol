@@ -1,20 +1,101 @@
 package main
 
-
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"os"
+	"os/exec"
 	"os/signal"
+	"runtime"
+	"strconv"
+	"strings"
 	"syscall"
+	"time"
 )
 
+func NumCpu() int {
+	return runtime.NumCPU()
+}
+
+func CpuUsage() float32 {
+	out, err := exec.Command("ps", "-A", "-o", "%cpu").Output()
+	if err != nil {
+		fmt.Printf("could not run cpu usage command %v\n", err)
+		return 0.0
+	}
+
+	susages := strings.Split(string(out), "\n")
+	if len(susages) <= 1 {
+		return 0.0
+	}
+
+	sum := float32(0.0)
+	for ix, u := range susages {
+		tu := strings.TrimSpace(u)
+		if ix == 0 || len(tu) == 0 {
+			continue
+		}
+
+		s, err := strconv.ParseFloat(tu, 32)
+		if err != nil {
+			fmt.Printf("Could not parse err=%v\n", err)
+			continue
+		}
+		sum += float32(s)
+	}
+
+	return sum
+}
+
+func sysInfo() {
+	in := &syscall.Sysinfo_t{}
+	err := syscall.Sysinfo(in)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return
+	}
+
+	fmt.Printf("Sys info: %v\n", toJson(*in))
+}
+
+func toJson(in interface{}) string {
+	b, err := json.Marshal(in)
+	if err != nil {
+		fmt.Printf("Could not marshall object %v\n", err)
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+type SystemUsage struct {
+	NumCpus      int     `json:"num_cpus"`
+	CpuUsage     float32 `json:"cpu_usage_percent"`
+	TotalMemory  uint64  `json:"total_memory_bytes"`
+	FreeMemory   uint64  `json:"free_memory_bytes"`
+	AvailPercent float32 `json:"free_memory_percent"`
+	Timestamp    int64   `json:"epoch"`
+}
+
 func main() {
+	su := SystemUsage{
+		NumCpus:     NumCpu(),
+		CpuUsage:    CpuUsage(),
+		TotalMemory: TotalMemory(),
+		FreeMemory:  FreeMemory(),
+		Timestamp: time.Now().UnixNano() / 1000000,
+	}
+
+	su.AvailPercent = 100 * float32(su.FreeMemory) / float32(su.TotalMemory)
+
+	fmt.Printf("%s", toJson(su))
+
+	return
 
 	broker := "localhost:9092"
 	group := "agroup"
-	var topics []string
-	topics = append(topics, "_confluent-metrics")
+	topics := append([]string{}, "_confluent-metrics")
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
@@ -33,7 +114,7 @@ func main() {
 
 	err = c.SubscribeTopics(topics, nil)
 
-	run := true
+	run := false
 
 	for run == true {
 		select {
