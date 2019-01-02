@@ -21,6 +21,8 @@ public class SolMain {
             .define("commands.topic", ConfigDef.Type.STRING, "sol-commands", ConfigDef.Importance.MEDIUM, "Kafka topic to for commands for loggers.")
             ;
 
+    private static final String LOGGER_TYPE = "java_application_logger";
+
     private final EventEmitter emitter;
     private String appName = "app-noname";
     private Map<String, String> hostname = new HashMap<>();
@@ -57,6 +59,10 @@ public class SolMain {
             // try sol.conf instead..
             solConfLocation = System.getProperty("sol.conf");
         }
+        if (solConfLocation == null) {
+            throw new IllegalArgumentException("sol.conf system property was not set.");
+        }
+
         System.out.println("Config file " + solConfLocation + (new File(solConfLocation).exists() ? " found " : " not found"));
 
         Map<String, Object> conf = configDef.parse(Utils.loadProps(solConfLocation));
@@ -79,6 +85,7 @@ public class SolMain {
         registration.put("app_name", appName);
         registration.put("logger_name", solLogger.name);
         registration.put("host", hostname);
+        registration.put("type", LOGGER_TYPE);
         emitter.register(registration);
     }
 }
