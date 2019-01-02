@@ -1,3 +1,5 @@
+github.com/confluentinc/confluent-kafka-go v0.11.0 h1:geGi7PpaJO3QsHUoCcSgKU16vtMTzG3RYzAVKnTb/L0=
+github.com/confluentinc/confluent-kafka-go v0.11.0/go.mod h1:u2zNLny2xq+5rWeTQjFHbDzzNuba4P1vo31r9r4uAdg=
 github.com/confluentinc/confluent-kafka-go v0.11.6 h1:rEblubnNXCjRThwAGnFSzLKYIRAoXLDC3A9r4ciziHU=
 github.com/confluentinc/confluent-kafka-go v0.11.6/go.mod h1:u2zNLny2xq+5rWeTQjFHbDzzNuba4P1vo31r9r4uAdg=
-github.com/wicknicks/sol v0.0.0-20181225071422-5e58ff2f139e h1:r8KAHZLB0+CJWLlq1eGRHfkY54aLpow0nyF09sztQN0=
+github.com/wicknicks/sol v0.0.0-20190102025839-3a42720a300d h1:x/6mEO+2cN30nOQ/OGtgNDtwakbaH9jAxZDqrYy1v+I=
