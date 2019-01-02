@@ -64,7 +64,7 @@ type SystemUsage struct {
 	TotalMemory  uint64  `json:"total_memory_bytes"`
 	FreeMemory   uint64  `json:"free_memory_bytes"`
 	AvailPercent float32 `json:"free_memory_percent"`
-	Timestamp    int64   `json:"epoch"`
+	Timestamp    int64   `json:"ts_millis"`
 }
 
 func main() {
