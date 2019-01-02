@@ -48,17 +48,6 @@ func CpuUsage() float32 {
 	return sum
 }
 
-func sysInfo() {
-	in := &syscall.Sysinfo_t{}
-	err := syscall.Sysinfo(in)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		return
-	}
-
-	fmt.Printf("Sys info: %v\n", toJson(*in))
-}
-
 func toJson(in interface{}) string {
 	b, err := json.Marshal(in)
 	if err != nil {
@@ -84,7 +73,7 @@ func main() {
 		CpuUsage:    CpuUsage(),
 		TotalMemory: TotalMemory(),
 		FreeMemory:  FreeMemory(),
-		Timestamp: time.Now().UnixNano() / 1000000,
+		Timestamp:   time.Now().UnixNano() / 1000000,
 	}
 
 	su.AvailPercent = 100 * float32(su.FreeMemory) / float32(su.TotalMemory)

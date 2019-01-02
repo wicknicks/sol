@@ -3,6 +3,11 @@
 package main
 
 import (
+	"fmt"
+	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
 	"syscall"
 	"unsafe"
 )
@@ -34,12 +39,12 @@ func sysFreeMemory() uint64 {
 	out, err := exec.Command("vm_stat").Output()
 	if err != nil {
 		fmt.Printf("%v", err)
-		return
+		return 0
 	}
 
 	lines := strings.Split(string(out), "\n")
 	if len(lines) < 2 {
-		return
+		return 0
 	}
 
 	regex := regexp.MustCompile("[0-9]+")
