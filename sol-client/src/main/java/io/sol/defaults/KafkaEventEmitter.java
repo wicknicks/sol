@@ -130,7 +130,7 @@ public class KafkaEventEmitter implements EventEmitter {
             ObjectMapper mapper = new ObjectMapper();
             byte[] loggerKey = mapper.writeValueAsBytes(new TreeMap<>(registration));
             globalKeys.put(name, loggerKey);
-            kafkaProducer.send(new ProducerRecord<>(sourcesTopic, loggerKey, "{\"status\": \"enabled\"}".getBytes()));
+            kafkaProducer.send(new ProducerRecord<>(sourcesTopic, loggerKey, "{\"status\": \"ready\"}".getBytes()));
         } catch (Exception d) {
             System.err.println("Could not register logger with sol. kafka err=" + d.getMessage());
         }
