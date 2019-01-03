@@ -10,7 +10,10 @@ As a framework, Sol provides the following facilities:
 2. Ability for users to enable/disable these loggers.
 3. Once enabled, loggers will emit objects into Kafka topics.
 
-This repo contains two different example loggers
+This repo contains the following two example loggers:
+
+1. [Java application logger](sol-client/src/main/java/io/sol/).
+2. [Go system metrics logger](go-sol/system-metrics/).
 
 ## Java Application Logger
 
