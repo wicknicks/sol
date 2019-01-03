@@ -16,7 +16,7 @@ This repo contains two different example loggers
 
 In order to log objects with Sol, simply add the following lines anywhere in your application:
 
-```
+```java
 public class AppTest {
 
     private final SolLogger sol = SolLoggers.logger(AppTest.class);
@@ -33,7 +33,7 @@ configure all loggers created by Sol.
 When `SolLogger` object (`sol`) is created, it attempts to register itself in a Kafka topic, producing a message
 into a `sol-sources` topic, where the key is:
 
-```
+```json
 {
   "app_name":"App-with-a-Sol",
   "host":
@@ -47,7 +47,7 @@ into a `sol-sources` topic, where the key is:
 ```
 
 and the value is
-```
+```json
 {
   "status": "ready"
 }
@@ -58,7 +58,7 @@ created and is ready for commands.
 
 Produce a message to the `sol-commands` topic where the key is the id of the logger (from above), and the value is:
 
-```
+```json
 {
   "status": "enabled"
 }
@@ -67,7 +67,7 @@ Produce a message to the `sol-commands` topic where the key is the id of the log
 Now, any object logged using the `sol` object will be serialized and produced to the `sol-logs` Kafka topic. Consuming
 from `sol-logs` will show the following values:
 
-```
+```bash
 $ kafka-console-consumer --bootstrap-server localhost:9092 --topic sol-logs --from-beginning
 ...
 {"hello": "world"}
@@ -82,7 +82,7 @@ $ kafka-console-consumer --bootstrap-server localhost:9092 --topic sol-logs --fr
 
 Similarly, we can disable logging by setting the status to disabled to `sol-commands`:
 
-```
+```json
 {
   "status": "disabled"
 }
@@ -95,7 +95,7 @@ those to `sol-logs`.
 
 This application starts up and the Sol logger identifies itself as:
 
-```
+```json
 {
   "app_name":"SolSystemMetrics",
   "logger_name":"CpuMemoryMetrics",
@@ -110,7 +110,7 @@ This application starts up and the Sol logger identifies itself as:
 Again, enable this by producing a message to `sol-commands` with the above key, and value as: `{"status": "enabled"}`
 to start producing metrics into `sol-logs` Kafka. Consuming from `sol-logs` will show the following values:
 
-```
+```bash
 $ kafka-console-consumer --bootstrap-server localhost:9092 --topic sol-logs --from-beginning
 ...
 {"num_cpus":8,"cpu_usage_percent":99.7,"total_memory_bytes":8259698688,"free_memory_bytes":635236352,"free_memory_percent":7.6907935,"ts_millis":1546502663341}
@@ -140,7 +140,7 @@ $ kafka-console-consumer --bootstrap-server localhost:9092 --topic sol-logs --fr
 Since loggers are enabled by setting values in a Kafka topic, we might want to use Ksql and use regular expressions to
 modify the status values on select loggers.
 
-```
+```sql
 # Enable all loggers with type java_application_logger (hypothetical query)
-UPDATE sol-commands SET value={"status": "enabled"} where key.type = "java_application_logger"
+UPDATE sol-commands SET value = {"status": "enabled"} where key.type = "java_application_logger"
 ```
