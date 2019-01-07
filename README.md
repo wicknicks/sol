@@ -15,7 +15,7 @@ This repo contains the following two example loggers:
 1. [Java application logger](sol-client/src/main/java/io/sol/).
 2. [Go system metrics logger](go-sol/system-metrics/).
 
-## Java Application Logger
+## Example: Java Application Logger
 
 In order to log objects with Sol, simply add the following lines anywhere in your application:
 
@@ -31,13 +31,27 @@ public class AppTest {
 ```
 
 The java program must be started with the JVM arg `-Dsol.conf=config/sol.properties`, where `sol.properties` is used to
-configure all loggers created by Sol.
+configure all loggers created by Sol. The contents of the properties file is as follows:
 
-When `SolLogger` object (`sol`) is created, it attempts to register itself in a Kafka topic, producing a message
-into a `sol-sources` topic, where the key is:
+```java
+bootstrap.servers = kafka:9092
+app.name = App-with-a-Sol
+log.topic = sol-logs
+```
 
-```json
-{
+After running this program, we can consume the `sol-logs` to find the following messages in it:
+
+```bash
+$ kafka-console-consumer --bootstrap-server localhost:9092 --topic sol-logs --from-beginning
+{"hello": "world"}
+^C Processed a total of 1 messages
+```
+
+If we print the key in this consumer, we will find a more detailed message explaining the origin of this message (**formatted for readability**):
+
+```bash
+$ kafka-console-consumer --bootstrap-server localhost:9092 --property print.key=true --topic sol-logs --from-beginning
+*key*: {
   "app_name":"App-with-a-Sol",
   "host":
     {
@@ -47,82 +61,85 @@ into a `sol-sources` topic, where the key is:
   "logger_name":"io.sol.examples.AppTest",
   "type":"java_application_logger"
 }
+
+*value*: {"hello": "world"}
+^C Processed a total of 1 messages
 ```
 
-and the value is
-```json
-{
-  "status": "ready"
-}
-```
-
-The key above is used to identify a specific logger, and it's value gives us it's status. In this case, the logger is
-created and is ready for commands.
-
-Produce a message to the `sol-commands` topic where the key is the id of the logger (from above), and the value is:
-
-```json
-{
-  "status": "enabled"
-}
-```
-
-Now, any object logged using the `sol` object will be serialized and produced to the `sol-logs` Kafka topic. Consuming
-from `sol-logs` will show the following values:
-
-```bash
-$ kafka-console-consumer --bootstrap-server localhost:9092 --topic sol-logs --from-beginning
-...
-{"hello": "world"}
-{"hello": "world"}
-{"hello": "world"}
-{"hello": "world"}
-{"hello": "world"}
-...
-^C Processed a total of 17 messages
-```
-
-
-Similarly, we can disable logging by setting the status to disabled to `sol-commands`:
-
-```json
-{
-  "status": "disabled"
-}
-```
-
-## System Metrics Collector
+## Example: System Metrics Collector
 
 We have a Go based application that collects some system metrics, namely CPU and memory usage on the localhost and emits
-those to `sol-logs`.
-
-This application starts up and the Sol logger identifies itself as:
-
-```json
-{
-  "app_name":"SolSystemMetrics",
-  "logger_name":"CpuMemoryMetrics",
-  "host": {
-    "addr":"192.168.0.27",
-    "name":"arjun-desktop"
-  },
-  "type":"example_go_logger"
-}
-```
-
-Again, enable this by producing a message to `sol-commands` with the above key, and value as: `{"status": "enabled"}`
-to start producing metrics into `sol-logs` Kafka. Consuming from `sol-logs` will show the following values:
+those to `sol-logs`. Building and running this application, and consuming from the `sol-logs` will show the following messages:
 
 ```bash
 $ kafka-console-consumer --bootstrap-server localhost:9092 --topic sol-logs --from-beginning
-...
 {"num_cpus":8,"cpu_usage_percent":99.7,"total_memory_bytes":8259698688,"free_memory_bytes":635236352,"free_memory_percent":7.6907935,"ts_millis":1546502663341}
 {"num_cpus":8,"cpu_usage_percent":67.8,"total_memory_bytes":8259698688,"free_memory_bytes":634093568,"free_memory_percent":7.6769576,"ts_millis":1546502668359}
 {"num_cpus":8,"cpu_usage_percent":57.300003,"total_memory_bytes":8259698688,"free_memory_bytes":629657600,"free_memory_percent":7.6232514,"ts_millis":1546502673375}
 {"num_cpus":8,"cpu_usage_percent":51.700005,"total_memory_bytes":8259698688,"free_memory_bytes":625836032,"free_memory_percent":7.576984,"ts_millis":1546502678392}
 {"num_cpus":8,"cpu_usage_percent":48.4,"total_memory_bytes":8259698688,"free_memory_bytes":624066560,"free_memory_percent":7.555561,"ts_millis":1546502683408}
-...
-^C Processed a total of 38 messages
+^C Processed a total of 5 messages
+```
+## Managing Loggers with Sol
+
+Sol lets users manage a large number of such loggers running on various nodes in your data centers. Upon starting either of
+the example applications, we can see the following topics automatically created by the applications:
+
+```
+$ kafka-topics --zookeeper zk:2181 --list
+__consumer_offsets
+sol-commands
+sol-logs
+sol-sources
+```
+
+The sol sources lists every active logger. Consuming the messages from the sol-sources shows all the active loggers and their status
+(**formatted for readability**):
+
+```json
+$ kafka-console-consumer --bootstrap-server localhost:9092 --topic sol-sources --from-beginning --property print.key=true
+*key*: {
+  "app_name":"App-with-a-Sol",
+  "host":
+    {
+      "name":"arjun-desktop",
+      "addr":"127.0.1.1"
+    },
+  "logger_name":"io.sol.examples.AppTest",
+  "type":"java_application_logger"
+}
+
+*value*: {"status": "ready"}
+^CProcessed a total of 1 messages
+```
+
+Currently, the value in these messages only shows a `ready` status, but this could include more detailed metrics, error messages and logger configuration properties.
+
+A logger can be sent commands via the `sol-commands` topic. Produce a message to the `sol-commands` topic where the key
+is the id of the logger (from above), and the value requests the logger to be disabled (**formatted for readability**):
+
+```json
+$ kafka-console-producer --broker-list localhost:9092 --topic sol-sources --property "key.separator=->"
+*key*: {
+  "app_name":"App-with-a-Sol",
+  "host":
+    {
+      "name":"arjun-desktop",
+      "addr":"127.0.1.1"
+    },
+  "logger_name":"io.sol.examples.AppTest",
+  "type":"java_application_logger"
+}
+->
+*value*: {"status": "disabled"}
+```
+
+Similarly, enable the logger by changing the value to:
+
+```json
+{
+  "status": "enabled"
+}
 ```
 
 ## Next Steps
