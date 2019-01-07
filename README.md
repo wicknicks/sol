@@ -142,6 +142,28 @@ Similarly, enable the logger by changing the value to:
 }
 ```
 
+The above commands produce records directly to Kafka topics to manage loggers. In the future, Sol binaries/scripts will
+provide a more streamlined way to do the same. For example, sol list would list all apps:
+
+```bash
+$ sol list apps
+App-with-a-Sol
+SolSystemMetrics
+```
+and sol list loggers SolSystemMetrics, would list the loggers running within an app:
+
+```bash
+$ sol list loggers --app SolSystemMetrics
+CpuMemoryMetrics
+```
+
+Finally, enable or disable loggers with:
+
+```bash
+$ sol command --app SolSystemMetrics --logger CpuMemoryMetrics --cmd '{"status": "enabled"}'
+OK
+```
+
 ## Next Steps
 
 ### Formalize
