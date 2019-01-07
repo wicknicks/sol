@@ -15,7 +15,7 @@ This repo contains the following two example loggers:
 1. [Java application logger](sol-client/src/main/java/io/sol/).
 2. [Go system metrics logger](go-sol/system-metrics/).
 
-## Example: Java Application Logger
+### Example: Java Application Logger
 
 In order to log objects with Sol, simply add the following lines anywhere in your application:
 
@@ -66,7 +66,7 @@ $ kafka-console-consumer --bootstrap-server localhost:9092 --property print.key=
 ^C Processed a total of 1 messages
 ```
 
-## Example: System Metrics Collector
+### Example: System Metrics Collector
 
 We have a Go based application that collects some system metrics, namely CPU and memory usage on the localhost and emits
 those to `sol-logs`. Building and running this application, and consuming from the `sol-logs` will show the following messages:
