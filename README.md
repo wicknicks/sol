@@ -157,12 +157,23 @@ $ sol list loggers --app SolSystemMetrics
 CpuMemoryMetrics
 ```
 
-Finally, enable or disable loggers with:
+Enable or disable loggers with:
 
 ```bash
-$ sol command --app SolSystemMetrics --logger CpuMemoryMetrics --cmd '{"status": "enabled"}'
+$ sol cmd --app SolSystemMetrics --logger CpuMemoryMetrics '{"status": "enabled"}'
 OK
 ```
+
+And check history of commands to a logger:
+
+```bash
+$ sol cmd --app SolSystemMetrics --logger CpuMemoryMetrics '{"status": "enabled"}'
+[2019-01-06 16:08:39] {"status": "enabled"}
+[2019-01-06 15:58:39] {"status": "disabled"}
+[2019-01-06 15:40:09] {"status": "enabled"}
+[2019-01-06 15:38:37] {"status": "disabled"}
+```
+
 
 ## Next Steps
 
